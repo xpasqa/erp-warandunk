@@ -29,11 +29,11 @@ Procurement menyimpan **rencana belanja**, **penerimaan barang**, dan **pertangg
 
 ## 4. Settlement belanja
 
-**PROC-012** Payment/settlement pembelian adalah transaksi tersendiri dari stock posting; receipt dapat `UNPAID`, `PARTIALLY_PAID`, atau `PAID` setelah validasi pembayaran.  
-**PROC-013** Pembayaran dapat berasal dari kas operasional, transfer owner, atau sumber dana lain yang dikonfigurasi. Hanya pembayaran yang memengaruhi kas warung yang dicatat sebagai `cash_movements` keluar.  
-**PROC-014** Total pembayaran tidak boleh melebihi kewajiban receipt tanpa kebijakan biaya tambahan/uang muka terpisah.  
-**PROC-015** Simpan bukti pembayaran, actor, payee, sumber dana, waktu, jumlah dan nomor referensi opsional.  
-**PROC-016** List `RECEIVED` tidak otomatis berarti `PAID`, begitu pula sebaliknya.
+**PROC-018** Payment/settlement pembelian adalah transaksi tersendiri dari stock posting; receipt dapat `UNPAID`, `PARTIALLY_PAID`, atau `PAID` setelah validasi pembayaran.  
+**PROC-019** Pembayaran dapat berasal dari kas operasional, transfer owner, atau sumber dana lain yang dikonfigurasi. Hanya pembayaran yang memengaruhi kas warung yang dicatat sebagai `cash_movements` keluar.  
+**PROC-020** Total pembayaran tidak boleh melebihi kewajiban receipt tanpa kebijakan biaya tambahan/uang muka terpisah.  
+**PROC-021** Simpan bukti pembayaran, actor, payee, sumber dana, waktu, jumlah dan nomor referensi opsional.  
+**PROC-022** List `RECEIVED` tidak otomatis berarti `PAID`, begitu pula sebaliknya.
 
 ## 5. Master katalog dan stok
 
