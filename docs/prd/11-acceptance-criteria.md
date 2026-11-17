@@ -7,8 +7,8 @@
 | Story ID | Sebagai | Saya ingin | Agar |
 | --- | --- | --- | --- |
 | US-001 | Owner | Membuat dan mengekspor shopping list | Pembelian dapat dilakukan tanpa akun rider |
-| US-002 | Admin | Mencatat dan memverifikasi barang nyata | Stok bertambah sesuai jumlah diterima |
-| US-003 | Admin | Mencatat harga modal aktual dan harga jual produk baru | Margin dan katalog akurat |
+| US-002 | Cashier | Menginput realisasi belanja dan mengunggah struk wajib | Setiap penerimaan memiliki bukti sebelum diverifikasi |
+| US-003 | Owner/Admin | Review bukti struk, harga dan qty lalu approve/reject | Stok hanya bertambah setelah persetujuan |
 | US-004 | Owner/Admin | Mencatat settlement pembelian terpisah | Stok dan pembayaran tidak dicampur |
 | US-005 | Cashier | Menjual cepat via cash atau QRIS | Pembayaran dan stok tercatat |
 | US-006 | Cashier | Mencetak struk opsional | Customer mendapat bukti |
@@ -25,8 +25,8 @@
 | AC-002 | List DRAFT | Export | Daftar readable/printable mencantumkan item, qty, note |
 | AC-003 | List ON_PROCESS | Rider membeli barang di luar sistem | Tidak perlu user rider; status tetap merepresentasikan progres |
 | AC-004 | Receipt DRAFT qty 24 | Lihat saldo | Stok belum bertambah |
-| AC-005 | Receipt valid | Admin verify/post | Tepat 1 stock movement IN per line; receipt POSTED |
-| AC-006 | Receipt sudah posted | Kirim ulang post | Response idempotent, tidak ada tambahan stok |
+| AC-005 | Cashier telah submit receipt disertai struk valid | Owner/Admin approve | Tepat satu stock movement IN per line; receipt APPROVED_POSTED |
+| AC-006 | Receipt sudah approved | Retry approve | Response idempotent, tidak ada tambahan stok |
 | AC-007 | Sebagian item diterima | Posting receipt parsial | List PARTIALLY_RECEIVED, remaining qty terlihat |
 | AC-008 | Item bebas belum ada produk | Admin onboard saat receiving | Produk baru dengan kategori/SKU/price tersedia |
 | AC-009 | Receipt posted tetapi belum dibayar | Admin lihat settlement | UNPAID; stok sudah ada |
@@ -79,3 +79,18 @@
 ## 5. Exit criteria pilot MVP
 
 Tidak ada double sale, over-selling, mismatch sale vs ledger, missing audit untuk aksi sensitif, QRIS false-paid tanpa verifikasi, atau closing yang tidak dapat di-drill-down. Owner/Admin menyetujui contoh laporan pendapatan, stok dan HPP dari hari operasional nyata. Backup diuji bisa dipulihkan.
+
+## 6. Tambahan skenario purchase approval
+
+| Test | Given | When | Then |
+| --- | --- | --- | --- |
+| AC-036 | Cashier login | Create shopping list | 403; hanya Owner/Admin boleh |
+| AC-037 | Cashier input receipt | Submit tanpa upload struk | 422; inventory tidak berubah |
+| AC-038 | Cashier upload struk JPEG/PNG/PDF valid | Submit receipt | SUBMITTED, file privat, belum ada stock IN |
+| AC-039 | Receipt SUBMITTED oleh Cashier | Cashier memanggil approve | 403, stok tetap |
+| AC-040 | Owner/Admin membandingkan item dengan struk dan approve | Approve & Post | Movement IN sekali, approved_by dan waktu tersimpan |
+| AC-041 | Struk tidak sesuai qty/harga | Admin reject dengan alasan | Cashier melihat alasan, boleh revisi/resubmit |
+| AC-042 | Receipt APPROVED_POSTED | Cashier edit item/struk | Ditolak; hanya reversal resmi |
+| AC-043 | File struk milik store lain | User meminta akses | 403/404, tidak bocor |
+| AC-044 | File invalid MIME/ukuran | Upload | Ditolak sebelum submit |
+| AC-045 | Usulan harga jual dari Cashier | Belum approved | Harga jual aktif tidak berubah |

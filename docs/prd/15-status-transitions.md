@@ -18,19 +18,22 @@ stateDiagram-v2
 
 Status `RECEIVED` berarti qty terpenuhi atau remaining ditutup melalui keputusan eksplisit; bila pembelian kurang dari target dan ditutup, simpan variance dan closure reason. Cancel setelah partial receipt tidak membalikkan receipt yang sudah sah. Pemberhentian belanja tidak otomatis membatalkan pembayaran.
 
-## 2. Purchase receipt
+## 2. Purchase receipt — Cashier input, Owner/Admin approve
 
 ```mermaid
 stateDiagram-v2
   [*] --> DRAFT
-  DRAFT --> VERIFIED_POSTED: verify_and_post
+  DRAFT --> SUBMITTED: Cashier upload struk + submit
   DRAFT --> CANCELLED: cancel
-  VERIFIED_POSTED --> REVERSED: approved_reversal
+  SUBMITTED --> APPROVED_POSTED: Owner/Admin approve & post
+  SUBMITTED --> REJECTED: Owner/Admin reject with reason
+  REJECTED --> DRAFT: Cashier revisi
+  APPROVED_POSTED --> REVERSED: approved reversal
 ```
 
-Saat `DRAFT`: hanya rencana penerimaan, `stock delta = 0`. Saat `VERIFIED_POSTED`: movement IN dibuat, actor verifier disimpan, cost snapshot immutable. Saat `REVERSED`, dokumen balik menyebabkan movement OUT resmi dengan kontrol stok; tidak menghapus IN asli.
+Owner/Admin membuat shopping list. Cashier menginput receipt aktual, mengunggah **struk wajib JPEG/PNG/PDF**, dan submit. Setelah SUBMITTED, item dan berkas terkunci hingga ditolak. Owner atau Admin melakukan review struk, qty, harga beli, usulan harga jual, dan total. Satu approval cukup di MVP; Owner dapat meninjau approval Admin. Jika wajib Owner final approval, tambahkan kebijakan sesudah validasi kebutuhan [OPEN].
 
-Payment status receipt dihitung dari pembayaran: `UNPAID`, `PARTIALLY_PAID`, `PAID`, dengan reversal/adjustment payment bila ditemukan salah pembayaran. **Jangan gunakan status receiving sebagai payment status.**
+**Invariant:** DRAFT, SUBMITTED, REJECTED = stock delta 0; hanya APPROVED_POSTED menghasilkan IN, satu kali, atomik dengan pencatatan approver dan audit. REJECTED harus punya alasan, Cashier dapat revisi dan resubmit; file versi terdahulu disimpan untuk audit. Approval gagal jika tidak ada struk aktif valid. Payment status UNPAID/PARTIALLY_PAID/PAID adalah state terpisah, tidak identik dengan penerimaan stok.
 
 ## 3. Sale and payment
 
@@ -78,7 +81,7 @@ Koreksi historis dapat menimbulkan perbedaan penilaian jika barang dari receipt 
 ## 6. Invariant lintas modul (must never break)
 
 1. Qty on-hand bersumber dari jumlah signed movement posted per produk/store.
-2. Tidak ada stock movement dari shopping list atau draft receipt.
+2. Tidak ada stock movement dari shopping list atau receipt DRAFT/SUBMITTED/REJECTED; hanya APPROVED_POSTED memicu stock IN.
 3. Satu source event hanya diposting sekali, walau request diulang.
 4. Stock on-hand tidak negatif secara default.
 5. Sale PAID harus memiliki payment confirmed bernilai tepat dan OUT sesuai seluruh item.
@@ -95,7 +98,7 @@ Koreksi historis dapat menimbulkan perbedaan penilaian jika barang dari receipt 
 
 ## 7. Transaction boundaries
 
-- **Receipt posting transaction:** lock receipt and balance rows → validate status/lines → compute WAC → append movement IN → update balance projection → update receipt status/audit → commit.
+- **Receipt posting transaction:** Owner/Admin verify status SUBMITTED, mandatory receipt file valid, permission dan maker-checker → lock receipt/balance rows → compute WAC → append stock IN → update balances → status APPROVED_POSTED, approver dan audit → commit/rollback atomik.
 - **Sale posting transaction:** lock sale and inventory rows → validate current price/stock, payment proof and session → confirm payment → snapshot price/COGS → append stock OUT → update balances/sale/audit → commit.
 - **Void transaction:** validate approver/reason → persist reverse event and stock movement → persist refund/cash out only if money returned → mark sale VOIDED → commit.
 - **Session closing:** lock session → recompute expected from posted sources → record counted and variance → submit → separate verifier approval.

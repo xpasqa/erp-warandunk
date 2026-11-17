@@ -24,8 +24,9 @@
 | `products` | store_id, category_id, sku, barcode?, name, unit, selling_price, min_stock, is_active, metadata | `UNIQUE(store_id, sku)` |
 | `shopping_lists` | store_id, number, status, created_by, note, requested_at | Draft/active/cancelled |
 | `shopping_list_items` | shopping_list_id, product_id?, free_text_name?, requested_qty, unit, note | product atau free text wajib terisi |
-| `purchase_receipts` | store_id, shopping_list_id?, number, status, supplier_name?, subtotal, total, created_by, verified_by?, posted_at? | Receipt = bukti barang yang benar-benar diterima |
-| `purchase_receipt_items` | receipt_id, shopping_list_item_id?, product_id, accepted_qty, purchased_unit_cost, landed_unit_cost, line_total, note | Snapshot modal dan actual quantity |
+| `purchase_receipts` | store_id, shopping_list_id?, number, status, supplier_name?, subtotal, total, created_by (Cashier), submitted_at?, approved_by?, approved_at?, rejected_by?, rejected_at?, rejection_reason?, posted_at? | Receipt SUBMITTED hanya posting stock saat APPROVED_POSTED |
+| `purchase_receipt_items` | receipt_id, shopping_list_item_id?, product_id, accepted_qty, purchased_unit_cost, landed_unit_cost, proposed_selling_price?, line_total, note | Qty/harga beli diinput Cashier, harga jual baru berlaku setelah approve |
+| `purchase_receipt_attachments` | receipt_id, store_id, storage_key, file_name, mime_type, byte_size, checksum, uploaded_by, uploaded_at, is_active | Bukti foto/PDF privat; minimal 1 attachment aktif sebelum submit/approve |
 | `purchase_payments` | receipt_id, amount, source_account, paid_at, reference?, created_by, status | Terpisah dari stok masuk |
 | `stock_movements` | store_id, product_id, source_type, source_line_id, movement_kind, signed_qty, unit_cost_snapshot, posted_at, posted_by | Append-only; idempotent unique source+kind |
 | `sales` | store_id, session_id, number, status, subtotal, discount_total, total, created_by, paid_at?, voided_at? | Satu transaksi POS |
@@ -52,6 +53,7 @@ erDiagram
     SHOPPING_LISTS ||--o{ SHOPPING_LIST_ITEMS : has
     SHOPPING_LISTS o|--o{ PURCHASE_RECEIPTS : fulfilled_by
     PURCHASE_RECEIPTS ||--o{ PURCHASE_RECEIPT_ITEMS : contains
+    PURCHASE_RECEIPTS ||--o{ PURCHASE_RECEIPT_ATTACHMENTS : evidenced_by
     PURCHASE_RECEIPTS ||--o{ PURCHASE_PAYMENTS : paid_by
     PRODUCTS ||--o{ STOCK_MOVEMENTS : changes
     PURCHASE_RECEIPT_ITEMS ||--o{ STOCK_MOVEMENTS : posts_in
@@ -79,7 +81,7 @@ Mermaid bersifat konseptual; `source_type + source_line_id` pada ledger adalah p
 
 ## 5. Perhitungan stok dan WAC
 
-Posting receipt: kunci row saldo/proyeksi, validasi receipt, hitung biaya rata-rata per store+product, insert movement IN, update saldo proyeksi, ubah receipt status, commit satu DB transaction.
+Posting receipt: hanya Owner/Admin approve `SUBMITTED` dengan minimal satu struk aktif valid dari Cashier; lock receipt dan saldo, validasi maker-checker, hitung WAC, insert IN sekali, update saldo dan APPROVED_POSTED, simpan approver/audit, commit satu DB transaction.
 
 Posting sale: kunci saldo produk secara deterministik (urut product_id), validasi qty, snapshot WAC sebelum pengurangan, insert sale_items dan movement OUT, konfirmasi payment serta sale, update saldo, commit. Bila gagal, rollback keseluruhan. Jika pengelolaan payment eksternal asynchronous diperkenalkan, gunakan webhook idempotent dan reservation/fulfillment yang terdefinisi; jangan menahan transaksi database selama menunggu provider.
 
@@ -95,3 +97,7 @@ Posting sale: kunci saldo produk secara deterministik (urut product_id), validas
 ## 7. Security & migrasi
 
 Password disimpan dalam hash kuat (Argon2id/bcrypt sesuai library dan konfigurasi), bukan teks biasa. Credential, QRIS merchant secret, API key atau PIN tidak masuk metadata maupun audit logs. Migration skema berversi; rollback diuji. Seed store, role, dan konfigurasi default secara idempotent; production data tidak dihapus oleh seeding.
+
+## 8. Purchase receipt evidence invariants
+
+Attachment struk disimpan di object storage privat. `storage_key` bukan URL publik; file diunduh melalui otorisasi store/role dan signed URL yang singkat. Metadata minimal checksum, uploader dan waktu. Attachment lama tetap ada sebagai histori audit setelah reject/revision. Approve wajib memeriksa metadata dan keberadaan berkas aktif (atau mekanisme integrity check yang setara). Cashier tidak dapat mengubah `approved_by` atau `posted_at`; hanya Owner/Admin boleh memicu transisi. [OPEN]: kebijakan retensi struk dan jika penjual tidak memberi struk; default MVP tetap wajib upload.

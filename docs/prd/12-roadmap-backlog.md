@@ -9,7 +9,7 @@ Foundation (DB, Auth, Store, RBAC)
       ↓
 Catalog / Categories / Product
       ↓
-Shopping List → Receiving → Stock Ledger / WAC
+Shopping List → Cashier Entry + Struk Upload → Owner/Admin Approval → Stock Ledger / WAC
       ↓                     ↓
       └───────────────→ POS + Session + Payments
                               ↓
@@ -39,8 +39,9 @@ Shopping List → Receiving → Stock Ledger / WAC
 ### M2 — Procurement & inventory (P0)
 
 - Category/product CRUD, SKU unique, prices, min stock, metadata.
-- Shopping list draft/active/export.
-- Purchase receipt draft/post/partial, product onboarding.
+- Shopping list draft/active/export oleh Owner/Admin.
+- Purchase receipt realisasi oleh Cashier, wajib upload struk, submit/reject/resubmit.
+- Review bukti dan approval Owner/Admin; hanya approve memicu stock IN, sekaligus onboarding produk.
 - Stock movement ledger, on-hand projection, weighted average cost, stock opening.
 - Purchase payment settlement by source.
 - Exit: AC-001 to AC-011, AC-017, AC-021, AC-022 relevant tests pass.
@@ -75,7 +76,7 @@ Shopping List → Receiving → Stock Ledger / WAC
 | B-001 | Auth, RBAC, store scope | P0 | None |
 | B-002 | Category/product master | P0 | B-001 |
 | B-003 | Shopping list & export | P0 | B-002 |
-| B-004 | Receiving & post stock IN | P0 | B-002/B-003 |
+| B-004 | Cashier receiving input + mandatory struk + Owner/Admin approve → stock IN | P0 | B-002/B-003 |
 | B-005 | Stock movement & on-hand/WAC | P0 | B-002 |
 | B-006 | Purchase settlement | P0 | B-004 |
 | B-007 | POS cart & paid cash | P0 | B-005/B-001 |

@@ -1,6 +1,6 @@
 # WARANDUNK — Product Requirements Documentation (PRD)
 
-**Versi:** 0.1.0 (baseline kebutuhan, sebelum implementasi)  
+**Versi:** 0.2.0 (baseline kebutuhan, sebelum implementasi)  
 **Tanggal:** 2026-11-17  
 **Status:** Draft for validation  
 **Pemilik produk:** Owner operasional warung  
@@ -34,7 +34,7 @@ Dokumen ini merupakan spesifikasi produk, **bukan bukti implementasi**. Keputusa
 
 ## Prinsip yang tidak boleh dilanggar
 
-1. **Shopping list tidak sama dengan stok tersedia.** Kuantitas hanya bertambah setelah penerimaan diverifikasi/posting.
+1. **Shopping list maupun input Cashier tidak sama dengan stok tersedia.** Struk wajib diunggah, stok hanya bertambah saat approve Owner/Admin memicu posting.
 2. **Stok bersumber dari stock movement ledger**, bukan angka di master produk yang diedit langsung.
 3. **Harga beli dan harga jual adalah snapshot transaksi.** Pembaruan master tidak mengubah sejarah.
 4. **Penjualan dan pengurangan stok diposting atomik**, hanya setelah pembayaran dinyatakan sah.
@@ -47,7 +47,7 @@ Dokumen ini merupakan spesifikasi produk, **bukan bukti implementasi**. Keputusa
 
 ## Hasil yang ingin dicapai pada MVP
 
-- Owner membuat/mengekspor daftar belanja; Admin menerima, memverifikasi dan merekonsiliasi biaya pembelian.
+- Owner/Admin membuat daftar belanja; Cashier input realisasi dan unggah struk wajib; Owner/Admin approve/reject; stok masuk hanya setelah approved; settlement pembayaran tetap terpisah.
 - Kasir menambahkan item ke keranjang, menagih cash atau QRIS, dan mencetak struk secara opsional.
 - Stok, pembayaran, pengeluaran serta harga pokok tersimpan dengan hubungan yang dapat diaudit.
 - Admin menutup shift, mengisi uang fisik, memeriksa selisih, dan menyiapkan laporan harian.
@@ -59,3 +59,7 @@ Dokumen ini merupakan spesifikasi produk, **bukan bukti implementasi**. Keputusa
 - Tandai requirement dengan identitas (contoh: `INV-001`, `POS-004`) agar dapat ditautkan ke issue, API test, dan QA.
 - Perubahan status atau nilai transaksi terposting harus dijelaskan beserta dampaknya pada stok, kas dan audit.
 - Konfirmasi asumsi bisnis terbuka sebelum menjadikannya kode atau kebijakan akuntansi final.
+
+## Update workflow pembelian — 2026-11-17
+
+`Owner/Admin create shopping list → ON_PROCESS → Cashier input realisasi (qty, harga beli, usulan harga jual) + upload struk foto/PDF → SUBMITTED → Owner/Admin review → APPROVED_POSTED → Inventory IN`. Jika `REJECTED`, Cashier menerima alasan, merevisi input dan submit ulang. Satu approval Owner **atau** Admin cukup untuk MVP; mode Owner sebagai final approver wajib masih [OPEN].

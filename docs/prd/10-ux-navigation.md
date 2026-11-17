@@ -19,7 +19,8 @@ Login
 │  └─ Products (SKU, unit, prices, min stock, metadata)
 ├─ Procurement
 │  ├─ Shopping Lists → Create/Edit → Export/Print
-│  ├─ Receiving → Verify/Post
+│  ├─ Cashier Purchase Entry → Qty/Cost → Upload Struk → Submit
+│  ├─ Owner/Admin Receipt Approval → Review Struk → Approve & Post / Reject
 │  └─ Purchase Payments / Settlement
 ├─ Inventory
 │  ├─ Stock On-hand / Low Stock
@@ -59,9 +60,10 @@ Login
 
 ### Receiving Screen
 
-- Perbandingan target vs accepted qty dan harga beli aktual; editable selling price saat onboarding produk baru (bukan wajib pada setiap receipt).
-- Total modal jelas; daftar mismatch dan tombol Verify & Post dengan konfirmasi aksi irreversible.
-- Settlement dana ditampilkan sebagai tab/step terpisah dari posting stok.
+- Cashier membuka list ON_PROCESS, mengisi barang/qty/harga beli aktual, usulan harga jual dan **wajib mengunggah struk foto/PDF** sebelum Submit.
+- Owner/Admin melihat preview struk bersebelahan dengan data item, qty, harga dan total, lalu klik Approve & Post atau Reject (alasan wajib).
+- Jika rejected, Cashier melihat alasan, memperbaiki form/struk dan submit ulang. Jika approved stok masuk; sebelumnya stok tidak berubah.
+- Settlement dana tetap pada tab/step terpisah dari posting stok.
 
 ### Inventory Screen
 

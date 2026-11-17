@@ -39,7 +39,7 @@ Domain service bertanggung jawab atas write invariants; laporan membaca view/dat
 ## 3. Kontrak antar modul
 
 - Catalog mengelola identitas dan metadata produk; tidak menulis saldo stok.
-- Procurement mengelola list, receipt, payment pembelian; meminta Inventory mencatat IN setelah verify.
+- Procurement mengelola list Owner/Admin, input dan mandatory receipt upload oleh Cashier, approval Owner/Admin, serta pembayaran pembelian; memicu Inventory IN hanya setelah approve.
 - Inventory menjadi pemilik ledger dan invariant saldo nonnegatif; tidak menagih pelanggan.
 - POS mengelola sale/payment dan memicu Inventory OUT dalam transaksi DB yang aman.
 - Finance menyusun laporan dari transaksi posted, expense dan cash movement; tidak memodifikasi sale.
@@ -85,3 +85,7 @@ Phase 3: ekstraksi modul/service **hanya** bila bottleneck terukur; POS offline 
 ## 7. Pilihan yang menunggu keputusan
 
 Hosting/cloud provider, bentuk session auth, ORM, skema nomor invoice, stok dengan satuan pecahan, biaya pembelian tambahan dan model QRIS (statis/manual vs dynamic gateway) ditandai [OPEN] dan harus diputuskan sebelum build fitur terkait.
+
+## 8. Bukti struk digital
+
+Gunakan upload terautentikasi (multipart atau presigned upload terikat store/receipt), object storage privat, validasi JPEG/PNG/PDF dengan MIME dan magic bytes, batas file awal 10 MB, checksum, dan signed URL untuk review. Alur `Submit` dan `Approve` harus memvalidasi file aktif; tidak boleh ada stock posting jika bukti struk belum ada.

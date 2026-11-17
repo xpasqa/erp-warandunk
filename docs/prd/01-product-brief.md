@@ -20,7 +20,7 @@ Satu sumber kebenaran operasional untuk produk, pembelian, persediaan, penjualan
 
 ## 3. Ruang lingkup
 
-**In scope MVP (P0):** login/RBAC; kategori/master produk termasuk SKU, unit, harga jual; daftar belanja dan ekspor; status belanja; penerimaan parsial/total; verifikasi barang masuk; harga beli per penerimaan; stock ledger; stok saat ini dan stok minimum; POS keranjang dan pembayaran cash/QRIS manual terverifikasi; struk opsional; cash session; cash in/out; biaya operasional; closing harian; laporan penjualan, kas, QRIS, HPP, margin kasar, stok, pembelian; audit log; konfigurasi dasar; penyaringan berdasarkan store.
+**In scope MVP (P0):** login/RBAC; kategori/master produk termasuk SKU, unit, harga jual; daftar belanja dan ekspor oleh Owner/Admin; status belanja; input penerimaan parsial/total dan struk wajib oleh Cashier; approval Owner/Admin sebelum stok masuk; harga beli per penerimaan; stock ledger; stok saat ini dan stok minimum; POS keranjang dan pembayaran cash/QRIS manual terverifikasi; struk opsional; cash session; cash in/out; biaya operasional; closing harian; laporan penjualan, kas, QRIS, HPP, margin kasar, stok, pembelian; audit log; konfigurasi dasar; penyaringan berdasarkan store.
 
 **P1 pasca-MVP:** barcode scanner; supplier directory; retur penjualan; pembelian kredit/utang yang lebih lengkap; stock opname berbasis sesi; QRIS dinamis/gateway; dukungan printer thermal dedicated; notifikasi stok minimum; ekspor CSV/XLSX yang kaya; dukungan multi-cabang operasional.
 
@@ -30,15 +30,15 @@ Satu sumber kebenaran operasional untuk produk, pembelian, persediaan, penjualan
 
 ## 4. Pengguna dan situasi utama
 
-- **Owner:** menyusun daftar belanja, mengatur kebijakan, melihat laporan dan audit; dapat override dengan jejak alasan.
-- **Admin:** operator receiving, settlement pembelian, pengelolaan katalog, dan verifier closing.
-- **Cashier:** membuat transaksi, menerima pembayaran, mengajukan closing shift, melihat riwayat sendiri.
+- **Owner:** membuat daftar belanja, memverifikasi receipt Cashier, approve/reject stock posting, mengatur kebijakan, melihat laporan dan audit.
+- **Admin:** membuat shopping list, memeriksa struk yang diunggah Cashier, menyetujui/menolak receipt, settlement pembelian, pengelolaan katalog dan verifier closing.
+- **Cashier:** input realisasi belanja (qty, harga beli, usulan harga jual) dan unggah struk wajib, submit untuk approval; juga transaksi POS dan closing shift. Tidak bisa approve atau menambah stok langsung.
 - **Customer:** pembeli tanpa akun, opsional akun di fase nanti.
 - **Rider/Pembelanja:** bukan aktor aplikasi pada MVP; status `ON_PROCESS` cukup untuk mewakili barang sedang dibeli.
 
 ## 5. Alur bisnis end-to-end
 
-`Shopping List (DRAFT → ON_PROCESS) → Purchase Receipt (DRAFT → VERIFIED/POSTED) → Stock Movement IN → POS Sale (PAID) → Stock Movement OUT + Payment + COGS Snapshot → POS Session Closing → Daily Reconciliation → Reports`
+`Shopping List (Owner/Admin) → Cashier Purchase Entry + Mandatory Receipt Upload → SUBMITTED → Owner/Admin Approve → Stock Movement IN → POS Sale (PAID) → Stock Movement OUT + Payment + COGS Snapshot → POS Session Closing → Daily Reconciliation → Reports`
 
 Settlement biaya pembelian **terpisah** dari stock posting: barang dapat diterima hari ini tetapi uang baru diselesaikan besok. Pembayaran pembelian menghasilkan cash-out hanya jika benar-benar dibayar dari kas yang dikelola di sistem.
 

@@ -42,8 +42,12 @@ HTTP: `400` invalid input; `401` unauthenticated; `403` forbidden; `404` not fou
 | PATCH | `/stores/{storeId}/shopping-lists/{id}` | Edit draft |
 | POST | `/stores/{storeId}/shopping-lists/{id}/start` | Set ON_PROCESS |
 | GET | `/stores/{storeId}/shopping-lists/{id}/export` | Print/CSV list |
-| POST | `/stores/{storeId}/purchase-receipts` | Catat receiving draft |
-| POST | `/stores/{storeId}/purchase-receipts/{id}/post` | Verify dan stock IN secara atomik |
+| POST | `/stores/{storeId}/purchase-receipts` | Cashier membuat draft input pembelian |
+| POST | `/stores/{storeId}/purchase-receipts/{id}/attachments` | Cashier upload struk JPEG/PNG/PDF privat |
+| POST | `/stores/{storeId}/purchase-receipts/{id}/submit` | Submit; wajib struk valid; stok belum IN |
+| GET | `/stores/{storeId}/purchase-receipts?status=SUBMITTED` | Approval queue Owner/Admin |
+| POST | `/stores/{storeId}/purchase-receipts/{id}/approve` | Owner/Admin approve & post stock IN atomik |
+| POST | `/stores/{storeId}/purchase-receipts/{id}/reject` | Owner/Admin reject dengan alasan; Cashier revisi |
 | POST | `/stores/{storeId}/purchase-receipts/{id}/payments` | Settlement dana, tidak mengulang stok IN |
 
 Contoh receiving:
@@ -59,7 +63,7 @@ Contoh receiving:
 }
 ```
 
-Response draft memuat `status=DRAFT`. Endpoint `/post` memvalidasi dokumen dan melakukan `posted_at`, `verified_by`, `stock_movements` IN.
+Response draft memuat `status=DRAFT`. Cashier upload struk dan submit menjadi `SUBMITTED` tanpa stok IN. Owner/Admin meninjau foto/PDF struk, qty, harga; endpoint `/approve` memvalidasi bukti dan mem-post stock IN atomik dengan `approved_by`, `approved_at`, `posted_at`, status `APPROVED_POSTED`. Endpoint `/reject` memerlukan `reason`, lalu Cashier dapat revisi dan submit ulang. Tanpa struk valid: 422 `RECEIPT_ATTACHMENT_REQUIRED`.
 
 ## 4. Inventory
 
